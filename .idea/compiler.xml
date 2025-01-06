@@ -29,9 +29,6 @@
         <module name="product-service" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="product-order-system" target="17" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

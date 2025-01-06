@@ -1,5 +1,6 @@
 package com.jplumi.order_service.service;
 
+import com.jplumi.order_service.dto.InventoryResponse;
 import com.jplumi.order_service.dto.OrderItemDto;
 import com.jplumi.order_service.dto.OrderRequest;
 import com.jplumi.order_service.model.Order;
@@ -8,7 +9,9 @@ import com.jplumi.order_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +20,7 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final WebClient webClient;
 
     public void placeOrder(OrderRequest orderRequest) {
         Order newOrder = new Order();
@@ -26,7 +30,26 @@ public class OrderService {
                 .stream().map(this::dtoToOrderItem).toList();
         newOrder.setOrderItems(orderItems);
 
-        orderRepository.save(newOrder);
+        // Check stock
+        List<String> itemsSkuCodes = orderItems
+                .stream().map(OrderItem::getSku).toList();
+
+        InventoryResponse[] inventoryResponse = webClient.get()
+                .uri("http://localhost:8082/inventory",
+                        uriBuilder -> uriBuilder
+                                .queryParam("skuCodes", itemsSkuCodes)
+                                .build())
+                .retrieve().
+                bodyToMono(InventoryResponse[].class).
+                block();
+
+        boolean allItemsInStock = Arrays.stream(inventoryResponse).allMatch(InventoryResponse::isInStock);
+
+        if(allItemsInStock) {
+            orderRepository.save(newOrder);
+        } else {
+            throw new IllegalArgumentException("Some products are not in stock at the moment.");
+        }
     }
 
     private OrderItem dtoToOrderItem(OrderItemDto dto) {
