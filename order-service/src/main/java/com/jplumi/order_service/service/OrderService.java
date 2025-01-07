@@ -7,7 +7,6 @@ import com.jplumi.order_service.model.Order;
 import com.jplumi.order_service.model.OrderItem;
 import com.jplumi.order_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -20,7 +19,7 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
     public void placeOrder(OrderRequest orderRequest) {
         Order newOrder = new Order();
@@ -34,8 +33,8 @@ public class OrderService {
         List<String> itemsSkuCodes = orderItems
                 .stream().map(OrderItem::getSku).toList();
 
-        InventoryResponse[] inventoryResponse = webClient.get()
-                .uri("http://localhost:8082/inventory",
+        InventoryResponse[] inventoryResponse = webClientBuilder.build().get()
+                .uri("http://inventory-service/inventory",
                         uriBuilder -> uriBuilder
                                 .queryParam("skuCodes", itemsSkuCodes)
                                 .build())
