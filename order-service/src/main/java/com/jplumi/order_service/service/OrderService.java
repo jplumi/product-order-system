@@ -3,10 +3,12 @@ package com.jplumi.order_service.service;
 import com.jplumi.order_service.dto.InventoryResponse;
 import com.jplumi.order_service.dto.OrderItemDto;
 import com.jplumi.order_service.dto.OrderRequest;
+import com.jplumi.order_service.event.OrderPlacedEvent;
 import com.jplumi.order_service.model.Order;
 import com.jplumi.order_service.model.OrderItem;
 import com.jplumi.order_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -20,6 +22,8 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final WebClient.Builder webClientBuilder;
+
+    private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
 
     public void placeOrder(OrderRequest orderRequest) {
         Order newOrder = new Order();
@@ -46,6 +50,8 @@ public class OrderService {
 
         if(allItemsInStock) {
             orderRepository.save(newOrder);
+            kafkaTemplate.send("notificationTopic",
+                    new OrderPlacedEvent(newOrder.getOrderNumber()));
         } else {
             throw new IllegalArgumentException("Some products are not in stock at the moment.");
         }
