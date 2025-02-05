@@ -42,9 +42,9 @@ public class OrderService {
                         uriBuilder -> uriBuilder
                                 .queryParam("skuCodes", itemsSkuCodes)
                                 .build())
-                .retrieve().
-                bodyToMono(InventoryResponse[].class).
-                block();
+                .retrieve()
+                .bodyToMono(InventoryResponse[].class)
+                .block();
 
         boolean allItemsInStock = Arrays.stream(inventoryResponse).allMatch(InventoryResponse::isInStock);
 
