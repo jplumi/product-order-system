@@ -44,6 +44,7 @@ class ProductServiceApplicationTests {
 
 	@Test
 	void shouldCreateProduct() throws Exception {
+		// Arrange
 		ProductRequest productRequest = new ProductRequest(
 				"Harry Potter",
 				"Book",
@@ -51,10 +52,13 @@ class ProductServiceApplicationTests {
 		);
 		String requestString = objectMapper.writeValueAsString(productRequest);
 
+		// Act
 		mockMvc.perform(MockMvcRequestBuilders.post("/products")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestString))
 				.andExpect(MockMvcResultMatchers.status().isCreated());
+
+		// Assert
 		Assertions.assertEquals(1, productRepository.findAll().size());
 	}
 

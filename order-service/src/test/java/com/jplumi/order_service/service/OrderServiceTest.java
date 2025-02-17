@@ -31,9 +31,9 @@ class OrderServiceTest {
     private OrderRepository orderRepository;
 
     @Mock
-    private WebClient webClient;
-    @Mock
     private WebClient.Builder webClientBuilder;
+    @Mock
+    private WebClient webClient;
     @Mock
     private WebClient.RequestHeadersUriSpec requestHeadersUriSpec;
     @Mock
@@ -54,8 +54,7 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("Should place order successfully")
-    void placeOrder_Success() {
+    void placeOrder_WhenItemIsInStock_SaveOrderAndSendNotification() {
         // Arrange
         InventoryResponse[] inventoryResponses = { new InventoryResponse("1234", true) };
         mockWebClient(inventoryResponses);
@@ -72,8 +71,7 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when items not in stock")
-    void placeOrder_Failure() {
+    void placeOrder_WhenItemNotInStock_ThrowIllegalArgumentException() {
         // Arrange
         InventoryResponse[] inventoryResponses = { new InventoryResponse("1234", false) };
         mockWebClient(inventoryResponses);
